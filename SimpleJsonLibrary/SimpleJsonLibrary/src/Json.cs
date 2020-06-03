@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 
-namespace SimpleJson
+namespace SimpleJsonLibrary
 {
 	// TODO: Serializing Arrays does not work. 
 	// TODO: Serializing Arrays with multiple dimensions does not work. 
