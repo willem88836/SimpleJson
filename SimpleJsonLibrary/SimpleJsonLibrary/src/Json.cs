@@ -11,7 +11,6 @@ namespace SimpleJsonLibrary
 	// TODO: Arrays with no content doesn't work.
 	// TODO: Nested strings do not work.
 	// TODO: Add functionality to disable/enable nested objects.
-	// TODO: add "" around names as well (json standard).
 	// TODO: Commentary...
 	public static class JsonUtility
 	{
@@ -253,7 +252,12 @@ namespace SimpleJsonLibrary
 					{
 						i++;
 						string memberName = nameBuilder.ToString();
-						// TODO: properties and fields can probably both be handled by their shared superclass.
+
+						if (memberName.StartsWith("\""))
+						{
+							memberName = memberName.Substring(1, memberName.Length - 2);
+						}
+
 						FieldInfo fieldInfo = elementType.GetField(memberName);
 						PropertyInfo propertyInfo = elementType.GetProperty(memberName);
 						Type objectType;
