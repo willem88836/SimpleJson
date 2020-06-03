@@ -7,6 +7,9 @@ namespace SimpleJsonTester
 	{
 		static void Main(string[] args)
 		{
+			try
+			{
+
 			Console.WriteLine("Hello World!");
 
 			JsonTestObject myObject = new JsonTestObject()
@@ -23,11 +26,15 @@ namespace SimpleJsonTester
 			string json = JsonUtility.ToJson(myObject);
 			Console.WriteLine(json);
 
-			JsonTestObject deserializedJson = JsonUtility.FromJson<JsonTestObject>(json);
-			string json2 = JsonUtility.ToJson(deserializedJson);
-			Console.WriteLine(json2);
+			//JsonTestObject deserializedJson = JsonUtility.FromJson<JsonTestObject>(json);
+			//string json2 = JsonUtility.ToJson(deserializedJson);
+			//Console.WriteLine(json2);
 
-			Console.WriteLine("original = deserialized: " + json == json2);
+			//Console.WriteLine("original = deserialized: " + json == json2);
+			}
+			catch(Exception ex) {
+				Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
+			}
 		}
 	}
 
