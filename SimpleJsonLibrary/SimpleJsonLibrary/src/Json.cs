@@ -11,7 +11,6 @@ namespace SimpleJsonLibrary
 	// TODO: Arrays with no content doesn't work.
 	// TODO: Nested strings do not work.
 	// TODO: Add functionality to disable/enable nested objects.
-	// TODO: add "" around names as well (json standard).
 	// TODO: Commentary...
 	public static class JsonUtility
 	{
@@ -24,7 +23,7 @@ namespace SimpleJsonLibrary
 			protected const char ARRAYSUFFIX = ']';
 			protected const char OBJDEFINITION = ':';
 			protected const char OBJSEPARATOR = ',';
-			protected const char STRINGENCAPSULATION = '\"';
+			protected const char QUOTATIONMARK = '\"';
 			protected const char OBJREFERENCE = '$';
 		}
 
@@ -97,7 +96,9 @@ namespace SimpleJsonLibrary
 				{
 					MemberInfo member = members[i];
 
+					jsonBuilder.Append(QUOTATIONMARK);
 					jsonBuilder.Append(member.Name);
+					jsonBuilder.Append(QUOTATIONMARK);
 					jsonBuilder.Append(OBJDEFINITION);
 
 					// Grabs the member's value and type 
@@ -191,9 +192,9 @@ namespace SimpleJsonLibrary
 			{
 				if (element.GetType() == typeof(string))
 				{
-					jsonBuilder.Append(STRINGENCAPSULATION);
+					jsonBuilder.Append(QUOTATIONMARK);
 					jsonBuilder.Append(element.ToString());
-					jsonBuilder.Append(STRINGENCAPSULATION);
+					jsonBuilder.Append(QUOTATIONMARK);
 				}
 				else
 				{
@@ -251,7 +252,12 @@ namespace SimpleJsonLibrary
 					{
 						i++;
 						string memberName = nameBuilder.ToString();
-						// TODO: properties and fields can probably both be handled by their shared superclass.
+
+						if (memberName.StartsWith("\""))
+						{
+							memberName = memberName.Substring(1, memberName.Length - 2);
+						}
+
 						FieldInfo fieldInfo = elementType.GetField(memberName);
 						PropertyInfo propertyInfo = elementType.GetProperty(memberName);
 						Type objectType;
@@ -318,7 +324,7 @@ namespace SimpleJsonLibrary
 				for (char jsonChar; i < json.Length; i++)
 				{
 					jsonChar = json[i];
-					if (jsonChar == STRINGENCAPSULATION)
+					if (jsonChar == QUOTATIONMARK)
 					{
 						isString = !isString;
 					}
