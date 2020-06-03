@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using SimpleJsonLibrary;
 
 namespace SimpleJsonTester
@@ -10,31 +11,47 @@ namespace SimpleJsonTester
 			try
 			{
 
-			Console.WriteLine("Hello World!");
+				Console.WriteLine("Hello World!");
 
-			JsonTestObject myObject = new JsonTestObject()
-			{
-				myJsonObject = new JsonTestObject()
+				JsonTestObject myObject = new JsonTestObject()
 				{
 					myJsonObject = new JsonTestObject()
-				},
-				myJsonObject2 = new JsonTestObject()
-			};
+					{
+						myJsonObject = new JsonTestObject()
+					},
+					myJsonObject2 = new JsonTestObject()
+				};
+				
+				string json1 = JsonUtility.ToJson(myObject);
+				Console.WriteLine(json1);
 
+				JsonTestObject deserializedJson = JsonUtility.FromJson<JsonTestObject>(json1);
+				string json2 = JsonUtility.ToJson(deserializedJson);
+				Console.WriteLine(json2);
 
+				bool equal = areEqual(json1, json2);
 
-			string json = JsonUtility.ToJson(myObject);
-			Console.WriteLine(json);
-
-			//JsonTestObject deserializedJson = JsonUtility.FromJson<JsonTestObject>(json);
-			//string json2 = JsonUtility.ToJson(deserializedJson);
-			//Console.WriteLine(json2);
-
-			//Console.WriteLine("original = deserialized: " + json == json2);
+				Console.WriteLine("original = deserialized: " + equal);
 			}
 			catch(Exception ex) {
 				Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
 			}
+		}
+
+		private static bool areEqual(string json1, string json2)
+		{
+			bool equal = true;
+			for (int i = 0; i < json1.Length && i < json2.Length; i++)
+			{
+				char c1 = json1[i];
+				char c2 = json2[i];
+				if (c1 != c2)
+				{
+					equal = false;
+					Console.WriteLine("I: " + i.ToString() + " - " + c1.ToString() + " - " + c2.ToString());
+				}
+			}
+			return equal;
 		}
 	}
 

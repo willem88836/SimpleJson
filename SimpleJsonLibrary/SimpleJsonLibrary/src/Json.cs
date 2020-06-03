@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
-using System.Runtime.Serialization;
 
 namespace SimpleJsonLibrary
 {
@@ -217,8 +216,9 @@ namespace SimpleJsonLibrary
 					return null;
 				}
 
-
-				object element = Activator.CreateInstance(elementType);
+				object element = elementType == typeof(string)
+					? ""
+					: Activator.CreateInstance(elementType);
 
 				chronologicalObjects.Add(element);
 
@@ -274,20 +274,18 @@ namespace SimpleJsonLibrary
 							valueBuilder.Clear();
 						};
 
+						object memberValue = null;
 
 						if (objectType.IsPrimitive)
 						{
-							object memberValue = DeserializePrimitive(json, ref i, objectType);
-							setValue.Invoke(memberValue);
+							memberValue = DeserializePrimitive(json, ref i, objectType);
 						}
 						else if (objectType.IsArray)
 						{
-							object memberValue = DeserializeArray(json, ref i, objectType.GetElementType());
-							setValue.Invoke(memberValue);
+							memberValue = DeserializeArray(json, ref i, objectType.GetElementType());
 						}
 						else
 						{
-							object memberValue;
 							jsonChar = json[i];
 							if (jsonChar == OBJREFERENCE)
 							{
@@ -297,9 +295,10 @@ namespace SimpleJsonLibrary
 							{
 								memberValue = DeserializeObject(json, ref i, objectType);
 							}
-							setValue.Invoke(memberValue);
 							i++;
 						}
+						setValue.Invoke(memberValue);
+
 
 						jsonChar = json[i];
 						if (jsonChar == OBJSUFFIX)
