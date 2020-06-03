@@ -65,80 +65,78 @@ namespace SimpleJsonLibrary
 
 					jsonBuilder.Append(OBJPREFIX);
 
-					FieldInfo[] fields = elementType.GetFields().Where(info => info.GetCustomAttribute(typeof(JsonIgnore)) == null && !info.IsLiteral).ToArray();
-					SerializeFields(element, fields);
+					FieldInfo[] fields = elementType.GetFields().Where(info => 
+						info.GetCustomAttribute(typeof(JsonIgnore)) == null 
+							&& !info.IsLiteral
+							&& !info.IsInitOnly).ToArray();
 
-					PropertyInfo[] properties = elementType.GetProperties().Where(info => info.GetCustomAttribute(typeof(JsonIgnore)) == null && info.CanWrite && info.CanRead).ToArray();
-					if (properties.Length > 0)
-					{
-						jsonBuilder.Append(OBJSEPARATOR);
-					}
-					SerializeProperties(element, properties);
+					PropertyInfo[] properties = elementType.GetProperties().Where(info => 
+						info.GetCustomAttribute(typeof(JsonIgnore)) == null 
+							&& info.CanWrite 
+							&& info.CanRead).ToArray();
+
+					MemberInfo[] members = new MemberInfo[fields.Length + properties.Length];
+					fields.CopyTo(members, 0);
+					properties.CopyTo(members, fields.Length);
+
+					SerializeMembers(element, members);
 
 					jsonBuilder.Append(OBJSUFFIX);
 				}
 			}
 
-			private void SerializeFields<T>(T element, FieldInfo[] fields)
+			/// <summary>
+			///		Serializes all members of an object. 
+			/// </summary>
+			/// <typeparam name="T">Type of the serialized element</typeparam>
+			/// <param name="element">The serialized element</param>
+			/// <param name="members">members of serialized element</param>
+			private void SerializeMembers<T>(T element, MemberInfo[] members)
 			{
-				for (int i = 0; i < fields.Length; i++)
+				for (int i = 0; i < members.Length; i++)
 				{
-					FieldInfo field = fields[i];
+					MemberInfo member = members[i];
 
-					jsonBuilder.Append(field.Name);
+					jsonBuilder.Append(member.Name);
 					jsonBuilder.Append(OBJDEFINITION);
 
-					object value = field.GetValue(element);
-					Type fieldType = field.FieldType;
+					// Grabs the member's value and type 
+					// based on whether its a property
+					// or a field.
+					object value = null;
+					Type valueType = null; 
 
-					if (fieldType.IsArray)
+					if (member.MemberType == MemberTypes.Field)
+					{
+						FieldInfo field = member as FieldInfo;
+						value = field.GetValue(element);
+						valueType = field.FieldType;
+					}
+					else
+					{
+						PropertyInfo field = member as PropertyInfo;
+						value = field.GetValue(element);
+						valueType = field.PropertyType;
+					}
+
+					// Determines serialization method 
+					// based on the object type.
+					if (valueType.IsArray)
 					{
 						SerializeArray(value);
 					}
-					else if (fieldType.IsPrimitive)
+					else if (valueType.IsPrimitive)
 					{
 						SerializePrimitive(value);
 					}
 					else
 					{
-						SerializeObject(value, fieldType);
-					}
-					
-					// TODO: can be neater.
-					if (i < fields.Length - 1)
-					{
-						jsonBuilder.Append(OBJSEPARATOR);
-					}
-				}
-			}
-
-			// TODO: properties and fields can probably both be handled by their shared superclass.
-			private void SerializeProperties<T>(T element, PropertyInfo[] properties)
-			{
-				for (int i = 0; i < properties.Length; i++)
-				{
-					PropertyInfo property = properties[i];
-
-					jsonBuilder.Append(property.Name);
-					jsonBuilder.Append(OBJDEFINITION);
-
-					object value = property.GetValue(element);
-					Type propertyType = property.PropertyType;
-
-					if (propertyType.IsArray)
-					{
-						SerializeArray(value);
-					}
-					else if (propertyType.IsPrimitive)
-					{
-						SerializePrimitive(value);
-					}
-					else
-					{
-						SerializeObject(value, propertyType);
+						SerializeObject(value, valueType);
 					}
 
-					if (i < properties.Length - 1)
+					// if the last object is not reached,
+					// a separator is added. 
+					if (i < members.Length - 1)
 					{
 						jsonBuilder.Append(OBJSEPARATOR);
 					}
@@ -218,8 +216,9 @@ namespace SimpleJsonLibrary
 					return null;
 				}
 
-
-				object element = Activator.CreateInstance(elementType);
+				object element = elementType == typeof(string)
+					? ""
+					: Activator.CreateInstance(elementType);
 
 				chronologicalObjects.Add(element);
 
@@ -275,20 +274,18 @@ namespace SimpleJsonLibrary
 							valueBuilder.Clear();
 						};
 
+						object memberValue = null;
 
 						if (objectType.IsPrimitive)
 						{
-							object memberValue = DeserializePrimitive(json, ref i, objectType);
-							setValue.Invoke(memberValue);
+							memberValue = DeserializePrimitive(json, ref i, objectType);
 						}
 						else if (objectType.IsArray)
 						{
-							object memberValue = DeserializeArray(json, ref i, objectType.GetElementType());
-							setValue.Invoke(memberValue);
+							memberValue = DeserializeArray(json, ref i, objectType.GetElementType());
 						}
 						else
 						{
-							object memberValue;
 							jsonChar = json[i];
 							if (jsonChar == OBJREFERENCE)
 							{
@@ -298,9 +295,10 @@ namespace SimpleJsonLibrary
 							{
 								memberValue = DeserializeObject(json, ref i, objectType);
 							}
-							setValue.Invoke(memberValue);
 							i++;
 						}
+						setValue.Invoke(memberValue);
+
 
 						jsonChar = json[i];
 						if (jsonChar == OBJSUFFIX)
