@@ -1,2 +1,2 @@
 # SimpleJson
-Contains a simple-to-sue Json library. 
+Contains a simple-to-use Json library. 
