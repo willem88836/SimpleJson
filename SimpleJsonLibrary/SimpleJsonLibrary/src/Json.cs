@@ -24,7 +24,7 @@ namespace SimpleJsonLibrary
 			protected const char ARRAYSUFFIX = ']';
 			protected const char OBJDEFINITION = ':';
 			protected const char OBJSEPARATOR = ',';
-			protected const char STRINGENCAPSULATION = '\"';
+			protected const char QUOTATIONMARK = '\"';
 			protected const char OBJREFERENCE = '$';
 		}
 
@@ -97,7 +97,9 @@ namespace SimpleJsonLibrary
 				{
 					MemberInfo member = members[i];
 
+					jsonBuilder.Append(QUOTATIONMARK);
 					jsonBuilder.Append(member.Name);
+					jsonBuilder.Append(QUOTATIONMARK);
 					jsonBuilder.Append(OBJDEFINITION);
 
 					// Grabs the member's value and type 
@@ -191,9 +193,9 @@ namespace SimpleJsonLibrary
 			{
 				if (element.GetType() == typeof(string))
 				{
-					jsonBuilder.Append(STRINGENCAPSULATION);
+					jsonBuilder.Append(QUOTATIONMARK);
 					jsonBuilder.Append(element.ToString());
-					jsonBuilder.Append(STRINGENCAPSULATION);
+					jsonBuilder.Append(QUOTATIONMARK);
 				}
 				else
 				{
@@ -318,7 +320,7 @@ namespace SimpleJsonLibrary
 				for (char jsonChar; i < json.Length; i++)
 				{
 					jsonChar = json[i];
-					if (jsonChar == STRINGENCAPSULATION)
+					if (jsonChar == QUOTATIONMARK)
 					{
 						isString = !isString;
 					}
