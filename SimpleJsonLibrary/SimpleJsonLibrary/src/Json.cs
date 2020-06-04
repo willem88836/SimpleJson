@@ -7,9 +7,6 @@ using System.Linq.Expressions;
 
 namespace SimpleJsonLibrary
 {
-	// TODO: Serializing Arrays does not work. 
-	// TODO: Serializing Arrays with multiple dimensions does not work. 
-	// TODO: Arrays with no content doesn't work.
 	// TODO: Nested strings do not work.
 	// TODO: Commentary...
 	/// <summary>
