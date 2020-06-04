@@ -373,86 +373,51 @@ namespace SimpleJsonLibrary
 				// When the prefix is followed by a suffix, the array is empty.
 				if (json[i + 1] != ARRAYSUFFIX)
 				{
-					if (IsPrimitive(arraySubType))
+					for (char jsonChar; i < json.Length; i++)
 					{
-						for (char jsonChar; i < json.Length; i++)
+						jsonChar = json[i];
+
+						// if json[i] is a suffix, the array is finished. 
+						if (jsonChar == ARRAYSUFFIX || json[i + 1] == OBJECTSUFFIX)
 						{
-							jsonChar = json[i];
-
-							if (jsonChar == ARRAYSUFFIX)
-							{
-								break;
-							}
-
-							// if the code reaches this point, json[i] is always the 
-							// prefix or a comma. Therefore, i is incremented. 
-							i++;
-
-							object element = DeserializePrimitive(json, ref i, arraySubType);
-							arrayElements.Add(element);
-
-							// i is decremented so the prior in-loop if-statement can see 
-							// whether it's a special character.
-							i--;
+							break;
 						}
-					}
-					else if (arraySubType.IsArray)
-					{
-						for (char jsonChar; i < json.Length; i++)
+
+						// i is incremented so it points to the element
+						// after the comma or array's own prefix.
+						i++;
+
+						object element = null;
+
+						// Based on the current character, 
+						// a deserialization methodis chosen. 
+						switch (json[i])
 						{
-							jsonChar = json[i];
-
-							// if json[i] is a suffix, the array is finished. 
-							if (jsonChar == ARRAYSUFFIX || json[i + 1] == OBJECTSUFFIX)
-							{
+							case OBJECTPREFIX:
+								element= DeserializeObject(json, ref i, arraySubType);
+								// TODO: Is incremented, as DeserializeObject ends on 
+								// the last character, not the next.
+								i++;
 								break;
-							}
-
-							// i is incremented so it points to the element
-							// after the comma or array's own prefix.
-							i++;
-
-							object element = DeserializeArray(json, ref i, arraySubType.GetElementType());
-							arrayElements.Add(element);
-
-							// i is decremented so the prior, in-loop if-statement can see 
-							// whether it's a special character.
-							i--;
-						}
-					}
-					else
-					{
-						for (char jsonChar; i < json.Length; i++)
-						{
-							jsonChar = json[i];
-
-							// if json[i] is a suffix, the array is finished. 
-							if (jsonChar == ARRAYSUFFIX || json[i + 1] == OBJECTSUFFIX)
-							{
+							case OBJECTREFERENCE:
+								element = DeserializeReference(json, ref i);
+								// TODO: Is incremented, as DeserializeReference ends on 
+								// the last character, not the next.
+								i++;
 								break;
-							}
-
-							// i is incremented so it points to the element
-							// after the comma or array's own prefix.
-							i++;
-
-							jsonChar = json[i];
-
-							if (jsonChar == OBJECTPREFIX)
-							{
-								object element = DeserializeObject(json, ref i, arraySubType);
-								arrayElements.Add(element);
-							}
-							else if (jsonChar == OBJECTREFERENCE)
-							{
-								object element = DeserializeReference(json, ref i);
-								arrayElements.Add(element);
-							}
-
-							// i is decremented so the prior, in-loop if-statement can see 
-							// whether it's a special character.
-							i--;
+							case ARRAYPREFIX:
+								element = DeserializeArray(json, ref i, arraySubType.GetElementType());
+								break;
+							default:
+								element = DeserializePrimitive(json, ref i, arraySubType);
+								break;
 						}
+
+						arrayElements.Add(element);
+
+						// i is decremented so the prior, in-loop if-statement can see 
+						// whether it's a special character.
+						i--;
 					}
 				}
 				else
