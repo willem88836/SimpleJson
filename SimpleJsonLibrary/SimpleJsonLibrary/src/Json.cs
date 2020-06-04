@@ -429,6 +429,11 @@ namespace SimpleJsonLibrary
 							i--;
 						}
 					}
+					else
+					{
+						// i is incremented, so it points to the array-suffix.
+						i++;
+					}
 				}
 				else
 				{
@@ -496,10 +501,18 @@ namespace SimpleJsonLibrary
 			}
 		}
 
+		/// <summary>
+		///		Returns true if the type is primitive or a string.
+		/// </summary>
+		/// <param name="type">
+		///		tested type.
+		///	</param>
+		/// <returns></returns>
 		private static bool IsPrimitive(Type type)
 		{
 			return type.IsPrimitive || type == typeof(string);
 		}
+
 
 		/// <summary>
 		///		Converts Json string into a usable object. 
