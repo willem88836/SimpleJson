@@ -372,36 +372,34 @@ namespace SimpleJsonLibrary
 
 				if (arraySubType.IsPrimitive)
 				{
-					for (char jsonChar; i < json.Length; i++)
+					// When the prefix is followed by a suffix, the array is empty.
+					if (json[i + 1] != ARRAYSUFFIX)
 					{
-						jsonChar = json[i];
+						for (char jsonChar; i < json.Length; i++)
+						{
+							jsonChar = json[i];
 
-						if (jsonChar == ARRAYSUFFIX)
-						{
-							break;
-						}
-						else if (jsonChar == ARRAYPREFIX)
-						{
-							// When the prefix is followed by a suffix, the array is empty.
-							int j = i + 1;
-							if (j < json.Length && json[j] == ARRAYSUFFIX)
+							if (jsonChar == ARRAYSUFFIX)
 							{
-								// i is incremented, so it points to the array-suffix.
-								i++;
 								break;
 							}
+
+							// if the code reaches this point, json[i] is always the 
+							// prefix or a comma. Therefore, i is incremented. 
+							i++;
+
+							object element = DeserializePrimitive(json, ref i, arraySubType);
+							arrayElements.Add(element);
+
+							// i is decremented so the prior in-loop if-statement can see 
+							// whether it's a special character.
+							i--;
 						}
-
-						// if the code reaches this point, json[i] is always the 
-						// prefix or a comma. Therefore, i is incremented. 
+					}
+					else
+					{
+						// i is incremented, so it points to the array-suffix.
 						i++;
-
-						object element = DeserializePrimitive(json, ref i, arraySubType);
-						arrayElements.Add(element);
-
-						// i is decremented so the prior in-loop if-statement can see 
-						// whether it's a special character.
-						i--;
 					}
 				}
 				else if (arraySubType.IsArray)

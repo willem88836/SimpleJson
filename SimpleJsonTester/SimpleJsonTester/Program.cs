@@ -20,7 +20,7 @@ namespace SimpleJsonTester
 
 				JsonTestObject deserializedJson = JsonUtility.FromJson<JsonTestObject>(json1);
 				string json2 = JsonUtility.ToJson(deserializedJson, typeof(JsonTestObject), false);
-				Console.WriteLine(json2/*.Replace(",", ",\n").Replace("{", "{\n")*/);
+				Console.WriteLine(json2/*.Replace(",", ",\n").Replace("{", "{\n")*/ + "\n\n");
 
 				bool equal = areEqual(json1, json2);
 
@@ -69,9 +69,9 @@ namespace SimpleJsonTester
 
 	public class JsonTestObject
 	{
-		//public int[] intArrayA = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
-		//public int[] intArrayB = new int[0];
-		//public int[] intArrayC = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
+		public int[] intArrayA = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
+		public int[] intArrayB = new int[0];
+		public int[] intArrayC = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
 
 		public int[][] intArrayArrayA = new int[][]
 		{
