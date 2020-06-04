@@ -86,8 +86,8 @@ namespace SimpleJsonTester
 
 		//public int[][] intArrayArrayB = new int[0][];
 
-		//public string[] stringArrayA = new string[] { "1", "2", "3", "4", "5" };
-		//public string[] stringArrayB = new string[0];
+		public string[] stringArrayA = new string[] { "1", "2", "3", "4", "5" };
+		public string[] stringArrayB = new string[0];
 
 		//public JsonArrayObject[] jsonArrayA = new JsonArrayObject[]
 		//{

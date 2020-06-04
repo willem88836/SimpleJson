@@ -140,7 +140,7 @@ namespace SimpleJsonLibrary
 					{
 						SerializeArray(value);
 					}
-					else if (valueType.IsPrimitive || valueType == typeof(string))
+					else if (IsPrimitive(valueType))
 					{
 						SerializePrimitive(value);
 					}
@@ -163,7 +163,7 @@ namespace SimpleJsonLibrary
 				Type arraySubtype = arrayElement.GetType().GetElementType();
 				jsonBuilder.Append(ARRAYPREFIX);
 				Array array = (Array)arrayElement;
-				if (arraySubtype.IsPrimitive)
+				if (IsPrimitive(arraySubtype))
 				{
 					for (int i = 0; i < array.Length; i++)
 					{
@@ -296,7 +296,7 @@ namespace SimpleJsonLibrary
 
 						object memberValue = null;
 
-						if (objectType.IsPrimitive || objectType == typeof(string))
+						if (IsPrimitive(objectType))
 						{
 							memberValue = DeserializePrimitive(json, ref i, objectType);
 						}
@@ -370,7 +370,7 @@ namespace SimpleJsonLibrary
 			{
 				List<object> arrayElements = new List<object>();
 
-				if (arraySubType.IsPrimitive)
+				if (IsPrimitive(arraySubType))
 				{
 					// When the prefix is followed by a suffix, the array is empty.
 					if (json[i + 1] != ARRAYSUFFIX)
@@ -496,6 +496,10 @@ namespace SimpleJsonLibrary
 			}
 		}
 
+		private static bool IsPrimitive(Type type)
+		{
+			return type.IsPrimitive || type == typeof(string);
+		}
 
 		/// <summary>
 		///		Converts Json string into a usable object. 
