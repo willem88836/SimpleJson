@@ -20,7 +20,7 @@ namespace SimpleJsonLibrary
 		{
 			protected const string NULL = "null";
 			protected const char OBJPREFIX = '{';
-			protected const char OBJSUFFIX = '}';
+			protected const char OBJECTSUFFIX = '}';
 			protected const char ARRAYPREFIX = '[';
 			protected const char ARRAYSUFFIX = ']';
 			protected const char OBJDEFINITION = ':';
@@ -93,7 +93,7 @@ namespace SimpleJsonLibrary
 
 					SerializeMembers(element, members);
 
-					jsonBuilder.Append(OBJSUFFIX);
+					jsonBuilder.Append(OBJECTSUFFIX);
 				}
 			}
 
@@ -252,7 +252,7 @@ namespace SimpleJsonLibrary
 				{
 					jsonChar = json[i];
 
-					if (jsonChar == OBJSUFFIX)
+					if (jsonChar == OBJECTSUFFIX)
 					{
 						return element;
 					}
@@ -320,7 +320,7 @@ namespace SimpleJsonLibrary
 
 
 						jsonChar = json[i];
-						if (jsonChar == OBJSUFFIX)
+						if (jsonChar == OBJECTSUFFIX)
 						{
 							return element;
 						}
@@ -343,7 +343,7 @@ namespace SimpleJsonLibrary
 					}
 
 					
-					if (!isString && (jsonChar == OBJSEPARATOR || jsonChar == OBJSUFFIX || jsonChar == ARRAYSUFFIX))
+					if (!isString && (jsonChar == OBJSEPARATOR || jsonChar == OBJECTSUFFIX || jsonChar == ARRAYSUFFIX))
 					{
 						break;
 					}
@@ -368,6 +368,8 @@ namespace SimpleJsonLibrary
 
 			private Array DeserializeArray(string json, ref int i, Type arraySubType)
 			{
+				Console.WriteLine("deserializing array, starting with: " + json[i]);
+				Console.WriteLine(json[i + 1]);
 				List<object> arrayElements = new List<object>();
 
 				if (arraySubType.IsPrimitive)
@@ -399,34 +401,35 @@ namespace SimpleJsonLibrary
 						object element = DeserializePrimitive(json, ref i, arraySubType);
 						arrayElements.Add(element);
 
-						// i is decremented so the prior if-statement can see 
+						// i is decremented so the prior in-loop if-statement can see 
 						// whether it's a special character.
 						i--;
 					}
-
-					// Is incremented so json[i] no longer points at the array-suffix.
-					i++;
 				}
 				else if (arraySubType.IsArray)
 				{
-					for (char jsonChar; i < json.Length; i++)
+					// If json[i + 1] is a suffix, the array is empty.
+					if (json[i + 1] != ARRAYSUFFIX)
 					{
-						jsonChar = json[i];
-						if (jsonChar == ARRAYPREFIX)
+						for (char jsonChar = json[i]; i < json.Length; i++)
 						{
+							// if json[i] is a suffix, the array is finished. 
+							if (jsonChar == ARRAYSUFFIX || json[i + 1] == OBJECTSUFFIX)
+							{
+								break;
+							}
+
+							// i is incremented so it points to the element
+							// after the comma or array's own prefix.
 							i++;
+
 							object element = DeserializeArray(json, ref i, arraySubType.GetElementType());
 							arrayElements.Add(element);
-							i++;
-							jsonChar = json[i];
-						}
 
-						if (jsonChar == ARRAYSUFFIX)
-						{
-							break;
+							// i is decremented so the prior, in-loop if-statement can see 
+							// whether it's a special character.
+							i--;
 						}
-
-						i--;
 					}
 				}
 				else
@@ -452,6 +455,10 @@ namespace SimpleJsonLibrary
 						}
 					}
 				}
+
+				// Is incremented so json[i] no longer points at the array-suffix.
+				i++;
+				Console.WriteLine("fnal char:  " + json[i]);
 
 				// All elements of the list are copied to Array.
 				Array array = Array.CreateInstance(arraySubType, arrayElements.Count);

@@ -69,8 +69,19 @@ namespace SimpleJsonTester
 
 	public class JsonTestObject
 	{
-		public int[] intArrayA = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
-		public int[] intArrayB = new int[0];
+		//public int[] intArrayA = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
+		//public int[] intArrayB = new int[0];
+		//public int[] intArrayC = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
+
+		public int[][] intArrayArrayA = new int[][]
+		{
+			new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 },
+			new int[] { 0, 9, 8, 7, 6, 5, 4, 3, 2, 1 },
+			new int[] { 2, 4, 6, 8, 0, 1, 3, 5, 7, 9 },
+			new int[] { 9, 7, 5, 3, 1, 2, 4, 6, 8, 0 }
+		};
+
+		//public int[][] intArrayArrayB = new int[0][];
 
 		//public string[] stringArrayA = new string[] { "1", "2", "3", "4", "5" };
 		//public string[] stringArrayB = new string[0];
