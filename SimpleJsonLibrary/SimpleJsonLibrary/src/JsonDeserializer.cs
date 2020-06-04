@@ -25,7 +25,7 @@ namespace SimpleJsonLibrary
 		///		Type of the element that is deserialized.
 		///	</param>
 		/// <returns></returns>
-		public object FromJson(string json, Type elementType)
+		internal object FromJson(string json, Type elementType)
 		{
 			this.chronologicalObjects = new List<object>();
 			this.json = json;

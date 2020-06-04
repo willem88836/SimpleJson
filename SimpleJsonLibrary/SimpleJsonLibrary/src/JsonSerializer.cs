@@ -33,7 +33,7 @@ namespace SimpleJsonLibrary
 		///		you will get a StackOverflow Exception.
 		/// </param>
 		/// <returns>The object's Json string.</returns>
-		public string ToJson(object element, Type elementType, bool enableHashing)
+		internal string ToJson(object element, Type elementType, bool enableHashing)
 		{
 			this.jsonBuilder = new StringBuilder();
 			this.enableHashing = enableHashing;
