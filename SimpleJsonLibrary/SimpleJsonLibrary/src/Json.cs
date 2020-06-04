@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using System.Linq.Expressions;
 
 namespace SimpleJsonLibrary
 {
@@ -139,7 +140,7 @@ namespace SimpleJsonLibrary
 					{
 						SerializeArray(value);
 					}
-					else if (valueType.IsPrimitive)
+					else if (valueType.IsPrimitive || valueType == typeof(string))
 					{
 						SerializePrimitive(value);
 					}
@@ -295,7 +296,7 @@ namespace SimpleJsonLibrary
 
 						object memberValue = null;
 
-						if (objectType.IsPrimitive)
+						if (objectType.IsPrimitive || objectType == typeof(string))
 						{
 							memberValue = DeserializePrimitive(json, ref i, objectType);
 						}
@@ -305,8 +306,7 @@ namespace SimpleJsonLibrary
 						}
 						else
 						{
-							jsonChar = json[i];
-							if (jsonChar == OBJECTREFERENCE)
+							if (json[i] == OBJECTREFERENCE)
 							{
 								memberValue = DeserializeReference(json, ref i);
 							}
