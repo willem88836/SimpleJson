@@ -386,6 +386,8 @@ namespace SimpleJsonLibrary
 							int j = i + 1;
 							if (j < json.Length && json[j] == ARRAYSUFFIX)
 							{
+								// i is incremented, so it points to the array-suffix.
+								i++;
 								break;
 							}
 						}
