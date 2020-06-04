@@ -370,10 +370,10 @@ namespace SimpleJsonLibrary
 			{
 				List<object> arrayElements = new List<object>();
 
-				if (IsPrimitive(arraySubType))
+				// When the prefix is followed by a suffix, the array is empty.
+				if (json[i + 1] != ARRAYSUFFIX)
 				{
-					// When the prefix is followed by a suffix, the array is empty.
-					if (json[i + 1] != ARRAYSUFFIX)
+					if (IsPrimitive(arraySubType))
 					{
 						for (char jsonChar; i < json.Length; i++)
 						{
@@ -396,16 +396,7 @@ namespace SimpleJsonLibrary
 							i--;
 						}
 					}
-					else
-					{
-						// i is incremented, so it points to the array-suffix.
-						i++;
-					}
-				}
-				else if (arraySubType.IsArray)
-				{
-					// If json[i + 1] is a suffix, the array is empty.
-					if (json[i + 1] != ARRAYSUFFIX)
+					else if (arraySubType.IsArray)
 					{
 						for (char jsonChar; i < json.Length; i++)
 						{
@@ -430,15 +421,6 @@ namespace SimpleJsonLibrary
 						}
 					}
 					else
-					{
-						// i is incremented, so it points to the array-suffix.
-						i++;
-					}
-				}
-				else
-				{
-					// If json[i + 1] is a suffix, the array is empty.
-					if (json[i + 1] != ARRAYSUFFIX)
 					{
 						for (char jsonChar; i < json.Length; i++)
 						{
@@ -472,35 +454,13 @@ namespace SimpleJsonLibrary
 							i--;
 						}
 					}
-					else
-					{
-						// i is incremented, so it points to the array-suffix.
-						i++;
-					}
-
-
-
-					//for (char jsonChar; i < json.Length; i++)
-					//{
-					//	jsonChar = json[i];
-					//	if (jsonChar == OBJECTPREFIX)
-					//	{
-					//		object element = DeserializeObject(json, ref i, arraySubType);
-					//		arrayElements.Add(element);
-					//	}
-					//	else if (jsonChar == OBJECTREFERENCE)
-					//	{
-					//		object element = DeserializeReference(json, ref i);
-					//		arrayElements.Add(element);
-					//	}
-
-					//	jsonChar = json[i];
-					//	if (jsonChar == ARRAYSUFFIX)
-					//	{
-					//		break;
-					//	}
-					//}
 				}
+				else
+				{
+					// i is incremented, so it points to the array-suffix.
+					i++;
+				}
+
 
 				// Is incremented so json[i] no longer points at the array-suffix.
 				i++;
