@@ -7,7 +7,6 @@ using System.Reflection;
 namespace SimpleJsonLibrary
 {
 	// TODO: Nested strings do not work.
-	// TODO: Commentary...
 	/// <summary>
 	///		JsonUtility provides simple Json serialization and deserialization functionalities.
 	/// </summary>
@@ -26,6 +25,10 @@ namespace SimpleJsonLibrary
 			protected const char OBJECTREFERENCE = '$';
 		}
 
+
+		/// <summary>
+		///		Class that serializes objects to Json strings.
+		/// </summary>
 		private class JsonSerializer : Json
 		{
 			private StringBuilder jsonBuilder;
@@ -33,6 +36,23 @@ namespace SimpleJsonLibrary
 			private bool enableHashing;
 
 
+			/// <summary>
+			///		Serializes one object to a json string. 
+			/// </summary>
+			/// <param name="element">
+			///		The element that is serialized.
+			///	</param>
+			/// <param name="elementType">
+			///		The type of the element that is serialized.
+			/// </param>
+			/// <param name="enableHashing">
+			///		If true, the objects' hashcode is used to determine nested references. 
+			///		And duplicates are referred to by a number.
+			///		<br></br>
+			///		If set to false, and nested objects to refer to earlier objects, 
+			///		you will get a StackOverflow Exception.
+			/// </param>
+			/// <returns>The object's Json string.</returns>
 			public string ToJson(object element, Type elementType, bool enableHashing)
 			{
 				this.jsonBuilder = new StringBuilder();
@@ -47,6 +67,15 @@ namespace SimpleJsonLibrary
 				return json;
 			}
 
+			/// <summary>
+			///		Serializes one object to json, and appends this value to the jsonBuilder. 
+			/// </summary>
+			/// <param name="element">
+			///		Element that is serialized.
+			///	</param>
+			/// <param name="elementType">
+			///		Type of the element taht is serialized.
+			///	</param>
 			private void SerializeObject(object element, Type elementType)
 			{
 				if (element == null)
@@ -95,11 +124,14 @@ namespace SimpleJsonLibrary
 			}
 
 			/// <summary>
-			///		Serializes all members of an object. 
+			///		Serializes all members of one object. appends strings to jsonBuilder.
 			/// </summary>
-			/// <typeparam name="T">Type of the serialized element</typeparam>
-			/// <param name="element">The serialized element</param>
-			/// <param name="members">members of serialized element</param>
+			/// <param name="element">
+			///		The serialized element.
+			///	</param>
+			/// <param name="members">
+			///		Members of serialized element.
+			///	</param>
 			private void SerializeMembers<T>(T element, MemberInfo[] members)
 			{
 				for (int i = 0; i < members.Length; i++)
@@ -154,6 +186,13 @@ namespace SimpleJsonLibrary
 				}
 			}
 
+			/// <summary>
+			///		Serializes an array object that contains any type of elements.
+			///		Appends strings to jsonBuilder.
+			/// </summary>
+			/// <param name="arrayElement">
+			///		Array that is serialized.
+			///	</param>
 			private void SerializeArray(object arrayElement)
 			{
 				Type arraySubtype = arrayElement.GetType().GetElementType();
@@ -198,6 +237,12 @@ namespace SimpleJsonLibrary
 				jsonBuilder.Append(ARRAYSUFFIX);
 			}
 
+			/// <summary>
+			///		Serializes a primitive element to Json. Appends Json string to jsonBuilder.
+			/// </summary>
+			/// <param name="element">
+			///		The Serialized element.
+			/// </param>
 			private void SerializePrimitive(object element)
 			{
 				if (element.GetType() == typeof(string))
@@ -213,12 +258,46 @@ namespace SimpleJsonLibrary
 			}
 		}
 
+
+		/// <summary>
+		///		Class that deserializes Json strings to objects. 
+		/// </summary>
 		private class JsonDeserializer : Json
 		{
-			private List<object> chronologicalObjects = new List<object>();
+			private List<object> chronologicalObjects;
+			private string json;
 			private int index = 0;
 
-			public object DeserializeObject(string json, Type elementType)
+
+			/// <summary>
+			///		Deserializes one object from Json. 
+			/// </summary>
+			/// <param name="json">
+			///		The Json string that is deserialized.
+			///	</param>
+			/// <param name="elementType">
+			///		Type of the element that is deserialized.
+			///	</param>
+			/// <returns></returns>
+			public object FromJson(string json, Type elementType)
+			{
+				this.chronologicalObjects = new List<object>();
+				this.json = json;
+				this.index = 0;
+				return DeserializeObject(elementType);
+			}
+
+			/// <summary>
+			///		Deserializes one object from Json. 
+			///		Uses local index to determine where in the Json string it is.
+			/// </summary>
+			/// <param name="elementType">
+			///		Type of the element that is deserialized.
+			///	</param>
+			/// <returns>
+			///		Deserialized object. 
+			/// </returns>
+			private object DeserializeObject(Type elementType)
 			{
 				string nullValue = json.Substring(index, 4);
 				if (nullValue == NULL)
@@ -294,21 +373,21 @@ namespace SimpleJsonLibrary
 
 						if (IsPrimitive(objectType))
 						{
-							memberValue = DeserializePrimitive(json, objectType);
+							memberValue = DeserializePrimitive(objectType);
 						}
 						else if (objectType.IsArray)
 						{
-							memberValue = DeserializeArray(json, objectType.GetElementType());
+							memberValue = DeserializeArray(objectType.GetElementType());
 						}
 						else
 						{
 							if (json[index] == OBJECTREFERENCE)
 							{
-								memberValue = DeserializeReference(json);
+								memberValue = DeserializeReference();
 							}
 							else
 							{
-								memberValue = DeserializeObject(json, objectType);
+								memberValue = DeserializeObject(objectType);
 							}
 							index++;
 						}
@@ -326,7 +405,17 @@ namespace SimpleJsonLibrary
 				return element;
 			}
 
-			private object DeserializePrimitive(string json, Type primitiveType)
+			/// <summary>
+			///		Deserializes primitive from Json. 
+			///		Uses local index to determine where in the Json string it is. 
+			/// </summary>
+			/// <param name="primitiveType">
+			///		Type of the object that is deserialized.
+			/// </param>
+			/// <returns>
+			///		Deserialized object.
+			/// </returns>
+			private object DeserializePrimitive(Type primitiveType)
 			{
 				StringBuilder valueBuilder = new StringBuilder();
 				bool isString = false; 
@@ -362,7 +451,17 @@ namespace SimpleJsonLibrary
 				return Convert.ChangeType(value, primitiveType);
 			}
 
-			private Array DeserializeArray(string json, Type arraySubType)
+			/// <summary>
+			///		Deserializes array from Json. 
+			///		Uses local index to determine where in the Json string it is. 
+			/// </summary>
+			/// <param name="arraySubType">
+			///		The subtype of the array that is deserialized.
+			/// </param>
+			/// <returns>
+			///		Deserialized array.
+			/// </returns>
+			private Array DeserializeArray(Type arraySubType)
 			{
 				List<object> arrayElements = new List<object>();
 
@@ -390,22 +489,22 @@ namespace SimpleJsonLibrary
 						switch (json[index])
 						{
 							case OBJECTPREFIX:
-								element= DeserializeObject(json, arraySubType);
+								element= DeserializeObject(arraySubType);
 								// TODO: Is incremented, as DeserializeObject ends on 
 								// the last character, not the next.
 								index++;
 								break;
 							case OBJECTREFERENCE:
-								element = DeserializeReference(json);
+								element = DeserializeReference();
 								// TODO: Is incremented, as DeserializeReference ends on 
 								// the last character, not the next.
 								index++;
 								break;
 							case ARRAYPREFIX:
-								element = DeserializeArray(json, arraySubType.GetElementType());
+								element = DeserializeArray(arraySubType.GetElementType());
 								break;
 							default:
-								element = DeserializePrimitive(json, arraySubType);
+								element = DeserializePrimitive(arraySubType);
 								break;
 						}
 
@@ -437,7 +536,15 @@ namespace SimpleJsonLibrary
 				return array;
 			}
 
-			private object DeserializeReference(string json)
+			/// <summary>
+			///		Deserializes a reference from Json.
+			///		Uses local index to determine where in the Json string it is. 
+			///		Uses chronologicalObjects to determine what object is being referenced.
+			/// </summary>
+			/// <returns>
+			///		The referenced object. 
+			/// </returns>
+			private object DeserializeReference()
 			{
 				if (json[index] == OBJECTREFERENCE)
 				{
@@ -464,6 +571,7 @@ namespace SimpleJsonLibrary
 				return chronologicalObjects[j];
 			}
 		}
+
 
 		/// <summary>
 		///		Returns true if the type is primitive or a string.
@@ -493,7 +601,7 @@ namespace SimpleJsonLibrary
 		public static T FromJson<T>(string json) where  T : new()
 		{
 			JsonDeserializer jsonDeserializer = new JsonDeserializer();
-			return (T)jsonDeserializer.DeserializeObject(json, typeof(T));
+			return (T)jsonDeserializer.FromJson(json, typeof(T));
 		}
 
 		/// <summary>
@@ -511,7 +619,7 @@ namespace SimpleJsonLibrary
 		public static object FromJson(string json, Type elementType)
 		{
 			JsonDeserializer jsonDeserializer = new JsonDeserializer();
-			return jsonDeserializer.DeserializeObject(json, elementType);
+			return jsonDeserializer.FromJson(json, elementType);
 		}
 
 		/// <summary>
