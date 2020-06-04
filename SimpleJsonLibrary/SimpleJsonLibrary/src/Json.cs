@@ -19,14 +19,14 @@ namespace SimpleJsonLibrary
 		private class Json
 		{
 			protected const string NULL = "null";
-			protected const char OBJPREFIX = '{';
+			protected const char OBJECTPREFIX = '{';
 			protected const char OBJECTSUFFIX = '}';
 			protected const char ARRAYPREFIX = '[';
 			protected const char ARRAYSUFFIX = ']';
-			protected const char OBJDEFINITION = ':';
-			protected const char OBJSEPARATOR = ',';
+			protected const char OBJECTDEFINITION = ':';
+			protected const char OBJECTSEPARATOR = ',';
 			protected const char QUOTATIONMARK = '\"';
-			protected const char OBJREFERENCE = '$';
+			protected const char OBJECTREFERENCE = '$';
 		}
 
 		private class JsonSerializer : Json
@@ -63,9 +63,9 @@ namespace SimpleJsonLibrary
 				if (enableHashing && objectHashes.Contains(hash))
 				{
 					int index = objectHashes.IndexOf(hash);
-					jsonBuilder.Append(OBJREFERENCE);
+					jsonBuilder.Append(OBJECTREFERENCE);
 					jsonBuilder.Append(index);
-					jsonBuilder.Append(OBJREFERENCE);
+					jsonBuilder.Append(OBJECTREFERENCE);
 				}
 				else
 				{
@@ -75,7 +75,7 @@ namespace SimpleJsonLibrary
 						objectHashes.Add(hash);
 					}
 
-					jsonBuilder.Append(OBJPREFIX);
+					jsonBuilder.Append(OBJECTPREFIX);
 
 					FieldInfo[] fields = elementType.GetFields().Where(info => 
 						info.GetCustomAttribute(typeof(JsonIgnore)) == null 
@@ -112,7 +112,7 @@ namespace SimpleJsonLibrary
 					jsonBuilder.Append(QUOTATIONMARK);
 					jsonBuilder.Append(member.Name);
 					jsonBuilder.Append(QUOTATIONMARK);
-					jsonBuilder.Append(OBJDEFINITION);
+					jsonBuilder.Append(OBJECTDEFINITION);
 
 					// Grabs the member's value and type 
 					// based on whether its a property
@@ -152,7 +152,7 @@ namespace SimpleJsonLibrary
 					// a separator is added. 
 					if (i < members.Length - 1)
 					{
-						jsonBuilder.Append(OBJSEPARATOR);
+						jsonBuilder.Append(OBJECTSEPARATOR);
 					}
 				}
 			}
@@ -170,7 +170,7 @@ namespace SimpleJsonLibrary
 						SerializePrimitive(element);
 						if (i < array.Length - 1)
 						{
-							jsonBuilder.Append(OBJSEPARATOR);
+							jsonBuilder.Append(OBJECTSEPARATOR);
 						}
 					}
 				}
@@ -182,7 +182,7 @@ namespace SimpleJsonLibrary
 						SerializeArray(element);
 						if (i < array.Length - 1)
 						{
-							jsonBuilder.Append(OBJSEPARATOR);
+							jsonBuilder.Append(OBJECTSEPARATOR);
 						}
 					}
 				}
@@ -194,7 +194,7 @@ namespace SimpleJsonLibrary
 						SerializeObject(element, arraySubtype);
 						if (i < array.Length - 1)
 						{
-							jsonBuilder.Append(OBJSEPARATOR);
+							jsonBuilder.Append(OBJECTSEPARATOR);
 						}
 					}
 				}
@@ -239,7 +239,7 @@ namespace SimpleJsonLibrary
 				StringBuilder nameBuilder = new StringBuilder();
 				StringBuilder valueBuilder = new StringBuilder();
 
-				if (json[i] != OBJPREFIX)
+				if (json[i] != OBJECTPREFIX)
 				{
 					return null;
 				}
@@ -257,7 +257,7 @@ namespace SimpleJsonLibrary
 						return element;
 					}
 
-					if (jsonChar != OBJDEFINITION)
+					if (jsonChar != OBJECTDEFINITION)
 					{
 						nameBuilder.Append(jsonChar);
 					}
@@ -306,7 +306,7 @@ namespace SimpleJsonLibrary
 						else
 						{
 							jsonChar = json[i];
-							if (jsonChar == OBJREFERENCE)
+							if (jsonChar == OBJECTREFERENCE)
 							{
 								memberValue = DeserializeReference(json, ref i);
 							}
@@ -343,7 +343,7 @@ namespace SimpleJsonLibrary
 					}
 
 					
-					if (!isString && (jsonChar == OBJSEPARATOR || jsonChar == OBJECTSUFFIX || jsonChar == ARRAYSUFFIX))
+					if (!isString && (jsonChar == OBJECTSEPARATOR || jsonChar == OBJECTSUFFIX || jsonChar == ARRAYSUFFIX))
 					{
 						break;
 					}
@@ -437,12 +437,12 @@ namespace SimpleJsonLibrary
 					for (char jsonChar; i < json.Length; i++)
 					{
 						jsonChar = json[i];
-						if (jsonChar == OBJPREFIX)
+						if (jsonChar == OBJECTPREFIX)
 						{
 							object element = DeserializeObject(json, ref i, arraySubType);
 							arrayElements.Add(element);
 						}
-						else if (jsonChar == OBJREFERENCE)
+						else if (jsonChar == OBJECTREFERENCE)
 						{
 							object element = DeserializeReference(json, ref i);
 							arrayElements.Add(element);
@@ -473,7 +473,7 @@ namespace SimpleJsonLibrary
 
 			private object DeserializeReference(string json, ref int i)
 			{
-				if (json[i] == OBJREFERENCE)
+				if (json[i] == OBJECTREFERENCE)
 				{
 					i++;
 				}
@@ -484,7 +484,7 @@ namespace SimpleJsonLibrary
 				{
 					jsonChar = json[i];
 
-					if (jsonChar == OBJREFERENCE)
+					if (jsonChar == OBJECTREFERENCE)
 					{
 						break;
 					}
