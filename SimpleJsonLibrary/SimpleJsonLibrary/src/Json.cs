@@ -437,26 +437,69 @@ namespace SimpleJsonLibrary
 				}
 				else
 				{
-					for (char jsonChar; i < json.Length; i++)
+					// If json[i + 1] is a suffix, the array is empty.
+					if (json[i + 1] != ARRAYSUFFIX)
 					{
-						jsonChar = json[i];
-						if (jsonChar == OBJECTPREFIX)
+						for (char jsonChar; i < json.Length; i++)
 						{
-							object element = DeserializeObject(json, ref i, arraySubType);
-							arrayElements.Add(element);
-						}
-						else if (jsonChar == OBJECTREFERENCE)
-						{
-							object element = DeserializeReference(json, ref i);
-							arrayElements.Add(element);
-						}
+							jsonChar = json[i];
 
-						jsonChar = json[i];
-						if (jsonChar == ARRAYSUFFIX)
-						{
-							break;
+							// if json[i] is a suffix, the array is finished. 
+							if (jsonChar == ARRAYSUFFIX || json[i + 1] == OBJECTSUFFIX)
+							{
+								break;
+							}
+
+							// i is incremented so it points to the element
+							// after the comma or array's own prefix.
+							i++;
+
+							jsonChar = json[i];
+
+							if (jsonChar == OBJECTPREFIX)
+							{
+								object element = DeserializeObject(json, ref i, arraySubType);
+								arrayElements.Add(element);
+							}
+							else if (jsonChar == OBJECTREFERENCE)
+							{
+								object element = DeserializeReference(json, ref i);
+								arrayElements.Add(element);
+							}
+
+							// i is decremented so the prior, in-loop if-statement can see 
+							// whether it's a special character.
+							i--;
 						}
 					}
+					else
+					{
+						// i is incremented, so it points to the array-suffix.
+						i++;
+					}
+
+
+
+					//for (char jsonChar; i < json.Length; i++)
+					//{
+					//	jsonChar = json[i];
+					//	if (jsonChar == OBJECTPREFIX)
+					//	{
+					//		object element = DeserializeObject(json, ref i, arraySubType);
+					//		arrayElements.Add(element);
+					//	}
+					//	else if (jsonChar == OBJECTREFERENCE)
+					//	{
+					//		object element = DeserializeReference(json, ref i);
+					//		arrayElements.Add(element);
+					//	}
+
+					//	jsonChar = json[i];
+					//	if (jsonChar == ARRAYSUFFIX)
+					//	{
+					//		break;
+					//	}
+					//}
 				}
 
 				// Is incremented so json[i] no longer points at the array-suffix.

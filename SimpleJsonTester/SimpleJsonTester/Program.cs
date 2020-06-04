@@ -15,11 +15,11 @@ namespace SimpleJsonTester
 
 
 
-				string json1 = JsonUtility.ToJson(myObject, typeof(JsonTestObject), false);
+				string json1 = JsonUtility.ToJson(myObject, typeof(JsonTestObject), true);
 				Console.WriteLine(json1/*.Replace(",", ",\n").Replace("{", "{\n")*/ + "\n\n");
 
 				JsonTestObject deserializedJson = JsonUtility.FromJson<JsonTestObject>(json1);
-				string json2 = JsonUtility.ToJson(deserializedJson, typeof(JsonTestObject), false);
+				string json2 = JsonUtility.ToJson(deserializedJson, typeof(JsonTestObject), true);
 				Console.WriteLine(json2/*.Replace(",", ",\n").Replace("{", "{\n")*/ + "\n\n");
 
 				bool equal = areEqual(json1, json2);
@@ -89,15 +89,23 @@ namespace SimpleJsonTester
 		public string[] stringArrayA = new string[] { "1", "2", "3", "4", "5" };
 		public string[] stringArrayB = new string[0];
 
-		//public JsonArrayObject[] jsonArrayA = new JsonArrayObject[]
-		//{
-		//	new JsonArrayObject(0),
-		//	new JsonArrayObject(1),
-		//	new JsonArrayObject(2),
-		//	new JsonArrayObject(3),
-		//	new JsonArrayObject(4),
-		//};
+		public JsonArrayObject[] jsonArrayA = new JsonArrayObject[]
+		{
+			new JsonArrayObject(0),
+			new JsonArrayObject(1),
+			new JsonArrayObject(2),
+			new JsonArrayObject(3),
+			new JsonArrayObject(4),
+		};
 
-		//public JsonArrayObject[] jsonArrayB = new JsonArrayObject[0];
+		public JsonArrayObject[] jsonArrayB = new JsonArrayObject[0];
+		public JsonArrayObject jsonArrayobjectA;
+
+		public JsonTestObject()
+		{
+			jsonArrayobjectA = jsonArrayA[1];
+
+			jsonArrayA[3] = jsonArrayA[2];
+		}
 	}
 }
