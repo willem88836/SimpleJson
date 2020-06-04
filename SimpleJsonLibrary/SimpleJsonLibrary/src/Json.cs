@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -368,7 +368,6 @@ namespace SimpleJsonLibrary
 
 			private Array DeserializeArray(string json, ref int i, Type arraySubType)
 			{
-				// TODO: all the increments and decrements in the array methods are really confusing.
 				List<object> arrayElements = new List<object>();
 
 				if (arraySubType.IsPrimitive)
@@ -376,21 +375,35 @@ namespace SimpleJsonLibrary
 					for (char jsonChar; i < json.Length; i++)
 					{
 						jsonChar = json[i];
-						if (jsonChar == OBJSEPARATOR || jsonChar == ARRAYPREFIX)
-						{
-							i++;
-							object element = DeserializePrimitive(json, ref i, arraySubType);
-							arrayElements.Add(element);
 
-							jsonChar = json[i];
-							if (jsonChar == ARRAYSUFFIX)
+						if (jsonChar == ARRAYSUFFIX)
+						{
+							break;
+						}
+						else if (jsonChar == ARRAYPREFIX)
+						{
+							// When the prefix is followed by a suffix, the array is empty.
+							int j = i + 1;
+							if (j < json.Length && json[j] == ARRAYSUFFIX)
 							{
 								break;
 							}
-
-							i--;
 						}
+
+						// if the code reaches this point, json[i] is always the 
+						// prefix or a comma. Therefore, i is incremented. 
+						i++;
+
+						object element = DeserializePrimitive(json, ref i, arraySubType);
+						arrayElements.Add(element);
+
+						// i is decremented so the prior if-statement can see 
+						// whether it's a special character.
+						i--;
 					}
+
+					// Is incremented so json[i] no longer points at the array-suffix.
+					i++;
 				}
 				else if (arraySubType.IsArray)
 				{
@@ -438,6 +451,7 @@ namespace SimpleJsonLibrary
 					}
 				}
 
+				// All elements of the list are copied to Array.
 				Array array = Array.CreateInstance(arraySubType, arrayElements.Count);
 				for (int j = 0; j < arrayElements.Count; j++)
 				{
@@ -445,7 +459,6 @@ namespace SimpleJsonLibrary
 					array.SetValue(element, j);
 				}
 
-				i++;
 				return array;
 			}
 
