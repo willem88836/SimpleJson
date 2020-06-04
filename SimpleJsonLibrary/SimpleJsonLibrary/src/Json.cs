@@ -1,40 +1,48 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using System.Linq.Expressions;
 
 namespace SimpleJsonLibrary
 {
-	// TODO: Serializing Arrays does not work. 
-	// TODO: Serializing Arrays with multiple dimensions does not work. 
-	// TODO: Arrays with no content doesn't work.
 	// TODO: Nested strings do not work.
-	// TODO: Add functionality to disable/enable nested objects.
 	// TODO: Commentary...
+	/// <summary>
+	///		JsonUtility provides simple Json serialization and deserialization functionalities.
+	/// </summary>
 	public static class JsonUtility
 	{
 		private class Json
 		{
 			protected const string NULL = "null";
-			protected const char OBJPREFIX = '{';
-			protected const char OBJSUFFIX = '}';
+			protected const char OBJECTPREFIX = '{';
+			protected const char OBJECTSUFFIX = '}';
 			protected const char ARRAYPREFIX = '[';
 			protected const char ARRAYSUFFIX = ']';
-			protected const char OBJDEFINITION = ':';
-			protected const char OBJSEPARATOR = ',';
+			protected const char OBJECTDEFINITION = ':';
+			protected const char OBJECTSEPARATOR = ',';
 			protected const char QUOTATIONMARK = '\"';
-			protected const char OBJREFERENCE = '$';
+			protected const char OBJECTREFERENCE = '$';
 		}
 
 		private class JsonSerializer : Json
 		{
-			private StringBuilder jsonBuilder = new StringBuilder();
-			private List<int> objectHashes = new List<int>();
+			private StringBuilder jsonBuilder;
+			private List<int> objectHashes;
+			private bool enableHashing;
 
 
-			public string ToJson(object element, Type elementType)
+			public string ToJson(object element, Type elementType, bool enableHashing)
 			{
+				this.jsonBuilder = new StringBuilder();
+				this.enableHashing = enableHashing;
+				if (this.enableHashing)
+				{
+					objectHashes = new List<int>();
+				}
+
 				SerializeObject(element, elementType);
 				string json = jsonBuilder.ToString();
 				return json;
@@ -50,19 +58,22 @@ namespace SimpleJsonLibrary
 
 				int hash = element.GetHashCode();
 
-				if (objectHashes.Contains(hash))
+				if (enableHashing && objectHashes.Contains(hash))
 				{
 					int index = objectHashes.IndexOf(hash);
-					jsonBuilder.Append(OBJREFERENCE);
+					jsonBuilder.Append(OBJECTREFERENCE);
 					jsonBuilder.Append(index);
-					jsonBuilder.Append(OBJREFERENCE);
+					jsonBuilder.Append(OBJECTREFERENCE);
 				}
 				else
 				{
-					int index = objectHashes.Count;
-					objectHashes.Add(hash);
+					if (enableHashing)
+					{
+						int index = objectHashes.Count;
+						objectHashes.Add(hash);
+					}
 
-					jsonBuilder.Append(OBJPREFIX);
+					jsonBuilder.Append(OBJECTPREFIX);
 
 					FieldInfo[] fields = elementType.GetFields().Where(info => 
 						info.GetCustomAttribute(typeof(JsonIgnore)) == null 
@@ -80,7 +91,7 @@ namespace SimpleJsonLibrary
 
 					SerializeMembers(element, members);
 
-					jsonBuilder.Append(OBJSUFFIX);
+					jsonBuilder.Append(OBJECTSUFFIX);
 				}
 			}
 
@@ -99,7 +110,7 @@ namespace SimpleJsonLibrary
 					jsonBuilder.Append(QUOTATIONMARK);
 					jsonBuilder.Append(member.Name);
 					jsonBuilder.Append(QUOTATIONMARK);
-					jsonBuilder.Append(OBJDEFINITION);
+					jsonBuilder.Append(OBJECTDEFINITION);
 
 					// Grabs the member's value and type 
 					// based on whether its a property
@@ -126,7 +137,7 @@ namespace SimpleJsonLibrary
 					{
 						SerializeArray(value);
 					}
-					else if (valueType.IsPrimitive)
+					else if (IsPrimitive(valueType))
 					{
 						SerializePrimitive(value);
 					}
@@ -139,7 +150,7 @@ namespace SimpleJsonLibrary
 					// a separator is added. 
 					if (i < members.Length - 1)
 					{
-						jsonBuilder.Append(OBJSEPARATOR);
+						jsonBuilder.Append(OBJECTSEPARATOR);
 					}
 				}
 			}
@@ -149,7 +160,7 @@ namespace SimpleJsonLibrary
 				Type arraySubtype = arrayElement.GetType().GetElementType();
 				jsonBuilder.Append(ARRAYPREFIX);
 				Array array = (Array)arrayElement;
-				if (arraySubtype.IsPrimitive)
+				if (IsPrimitive(arraySubtype))
 				{
 					for (int i = 0; i < array.Length; i++)
 					{
@@ -157,7 +168,7 @@ namespace SimpleJsonLibrary
 						SerializePrimitive(element);
 						if (i < array.Length - 1)
 						{
-							jsonBuilder.Append(OBJSEPARATOR);
+							jsonBuilder.Append(OBJECTSEPARATOR);
 						}
 					}
 				}
@@ -169,7 +180,7 @@ namespace SimpleJsonLibrary
 						SerializeArray(element);
 						if (i < array.Length - 1)
 						{
-							jsonBuilder.Append(OBJSEPARATOR);
+							jsonBuilder.Append(OBJECTSEPARATOR);
 						}
 					}
 				}
@@ -181,7 +192,7 @@ namespace SimpleJsonLibrary
 						SerializeObject(element, arraySubtype);
 						if (i < array.Length - 1)
 						{
-							jsonBuilder.Append(OBJSEPARATOR);
+							jsonBuilder.Append(OBJECTSEPARATOR);
 						}
 					}
 				}
@@ -226,7 +237,7 @@ namespace SimpleJsonLibrary
 				StringBuilder nameBuilder = new StringBuilder();
 				StringBuilder valueBuilder = new StringBuilder();
 
-				if (json[i] != OBJPREFIX)
+				if (json[i] != OBJECTPREFIX)
 				{
 					return null;
 				}
@@ -239,12 +250,12 @@ namespace SimpleJsonLibrary
 				{
 					jsonChar = json[i];
 
-					if (jsonChar == OBJSUFFIX)
+					if (jsonChar == OBJECTSUFFIX)
 					{
 						return element;
 					}
 
-					if (jsonChar != OBJDEFINITION)
+					if (jsonChar != OBJECTDEFINITION)
 					{
 						nameBuilder.Append(jsonChar);
 					}
@@ -282,7 +293,7 @@ namespace SimpleJsonLibrary
 
 						object memberValue = null;
 
-						if (objectType.IsPrimitive)
+						if (IsPrimitive(objectType))
 						{
 							memberValue = DeserializePrimitive(json, ref i, objectType);
 						}
@@ -292,8 +303,7 @@ namespace SimpleJsonLibrary
 						}
 						else
 						{
-							jsonChar = json[i];
-							if (jsonChar == OBJREFERENCE)
+							if (json[i] == OBJECTREFERENCE)
 							{
 								memberValue = DeserializeReference(json, ref i);
 							}
@@ -307,7 +317,7 @@ namespace SimpleJsonLibrary
 
 
 						jsonChar = json[i];
-						if (jsonChar == OBJSUFFIX)
+						if (jsonChar == OBJECTSUFFIX)
 						{
 							return element;
 						}
@@ -330,7 +340,7 @@ namespace SimpleJsonLibrary
 					}
 
 					
-					if (!isString && (jsonChar == OBJSEPARATOR || jsonChar == OBJSUFFIX || jsonChar == ARRAYSUFFIX))
+					if (!isString && (jsonChar == OBJECTSEPARATOR || jsonChar == OBJECTSUFFIX || jsonChar == ARRAYSUFFIX))
 					{
 						break;
 					}
@@ -355,76 +365,69 @@ namespace SimpleJsonLibrary
 
 			private Array DeserializeArray(string json, ref int i, Type arraySubType)
 			{
-				// TODO: all the increments and decrements in the array methods are really confusing.
 				List<object> arrayElements = new List<object>();
 
-				if (arraySubType.IsPrimitive)
+				// When the prefix is followed by a suffix, the array is empty.
+				if (json[i + 1] != ARRAYSUFFIX)
 				{
 					for (char jsonChar; i < json.Length; i++)
 					{
 						jsonChar = json[i];
-						if (jsonChar == OBJSEPARATOR || jsonChar == ARRAYPREFIX)
-						{
-							i++;
-							object element = DeserializePrimitive(json, ref i, arraySubType);
-							arrayElements.Add(element);
 
-							jsonChar = json[i];
-							if (jsonChar == ARRAYSUFFIX)
-							{
-								break;
-							}
-
-							i--;
-						}
-					}
-				}
-				else if (arraySubType.IsArray)
-				{
-					for (char jsonChar; i < json.Length; i++)
-					{
-						jsonChar = json[i];
-						if (jsonChar == ARRAYPREFIX)
-						{
-							i++;
-							object element = DeserializeArray(json, ref i, arraySubType.GetElementType());
-							arrayElements.Add(element);
-							i++;
-							jsonChar = json[i];
-						}
-
-						if (jsonChar == ARRAYSUFFIX)
+						// if json[i] is a suffix, the array is finished. 
+						if (jsonChar == ARRAYSUFFIX || json[i + 1] == OBJECTSUFFIX)
 						{
 							break;
 						}
 
+						// i is incremented so it points to the element
+						// after the comma or array's own prefix.
+						i++;
+
+						object element = null;
+
+						// Based on the current character, 
+						// a deserialization methodis chosen. 
+						switch (json[i])
+						{
+							case OBJECTPREFIX:
+								element= DeserializeObject(json, ref i, arraySubType);
+								// TODO: Is incremented, as DeserializeObject ends on 
+								// the last character, not the next.
+								i++;
+								break;
+							case OBJECTREFERENCE:
+								element = DeserializeReference(json, ref i);
+								// TODO: Is incremented, as DeserializeReference ends on 
+								// the last character, not the next.
+								i++;
+								break;
+							case ARRAYPREFIX:
+								element = DeserializeArray(json, ref i, arraySubType.GetElementType());
+								break;
+							default:
+								element = DeserializePrimitive(json, ref i, arraySubType);
+								break;
+						}
+
+						arrayElements.Add(element);
+
+						// i is decremented so the prior, in-loop if-statement can see 
+						// whether it's a special character.
 						i--;
 					}
 				}
 				else
 				{
-					for (char jsonChar; i < json.Length; i++)
-					{
-						jsonChar = json[i];
-						if (jsonChar == OBJPREFIX)
-						{
-							object element = DeserializeObject(json, ref i, arraySubType);
-							arrayElements.Add(element);
-						}
-						else if (jsonChar == OBJREFERENCE)
-						{
-							object element = DeserializeReference(json, ref i);
-							arrayElements.Add(element);
-						}
-
-						jsonChar = json[i];
-						if (jsonChar == ARRAYSUFFIX)
-						{
-							break;
-						}
-					}
+					// i is incremented, so it points to the array-suffix.
+					i++;
 				}
 
+
+				// Is incremented so json[i] no longer points at the array-suffix.
+				i++;
+
+				// All elements of the list are copied to Array.
 				Array array = Array.CreateInstance(arraySubType, arrayElements.Count);
 				for (int j = 0; j < arrayElements.Count; j++)
 				{
@@ -432,13 +435,12 @@ namespace SimpleJsonLibrary
 					array.SetValue(element, j);
 				}
 
-				i++;
 				return array;
 			}
 
 			private object DeserializeReference(string json, ref int i)
 			{
-				if (json[i] == OBJREFERENCE)
+				if (json[i] == OBJECTREFERENCE)
 				{
 					i++;
 				}
@@ -449,7 +451,7 @@ namespace SimpleJsonLibrary
 				{
 					jsonChar = json[i];
 
-					if (jsonChar == OBJREFERENCE)
+					if (jsonChar == OBJECTREFERENCE)
 					{
 						break;
 					}
@@ -464,7 +466,31 @@ namespace SimpleJsonLibrary
 			}
 		}
 
+		/// <summary>
+		///		Returns true if the type is primitive or a string.
+		/// </summary>
+		/// <param name="type">
+		///		tested type.
+		///	</param>
+		/// <returns></returns>
+		private static bool IsPrimitive(Type type)
+		{
+			return type.IsPrimitive || type == typeof(string);
+		}
 
+
+		/// <summary>
+		///		Converts Json string into a usable object. 
+		/// </summary>
+		/// <typeparam name="T">
+		///		The type of the string that is deserialized.
+		///	</typeparam>
+		/// <param name="json">
+		///		The string that is deserialized.
+		///	</param>
+		/// <returns>
+		///		The deserialized Json object.
+		///	</returns>
 		public static T FromJson<T>(string json) where  T : new()
 		{
 			JsonDeserializer jsonDeserializer = new JsonDeserializer();
@@ -472,23 +498,73 @@ namespace SimpleJsonLibrary
 			return (T)jsonDeserializer.DeserializeObject(json, ref i, typeof(T));
 		}
 
-		public static object FromJson(string json, Type t)
+		/// <summary>
+		///		Converts Json string into a usable object. 
+		/// </summary>
+		/// <param name="json">
+		///		The string that is deserialized.
+		///	</param>
+		/// <param name="elementType">
+		///		The type of the string that is deserialized.
+		///	</param>
+		/// <returns>
+		///		The deserialized Json object.
+		///	</returns>
+		public static object FromJson(string json, Type elementType)
 		{
 			JsonDeserializer jsonDeserializer = new JsonDeserializer();
 			int i = 0;
-			return jsonDeserializer.DeserializeObject(json, ref i, t);
+			return jsonDeserializer.DeserializeObject(json, ref i, elementType);
 		}
 
-		public static string ToJson<T>(T obj)
+		/// <summary>
+		///		Creates Json code from the provided element.
+		/// </summary>
+		/// <typeparam name="T">
+		///		The type of the object that is serialized.
+		///	</typeparam>
+		/// <param name="element">
+		///		The object that is serialized.
+		/// </param>
+		/// <param name="enableHashing">
+		///		If true, the objects' hashcode is used to determine nested references. 
+		///		And duplicates are referred to by a number.
+		///		<br></br>
+		///		If set to false, and nested objects to refer to earlier objects, 
+		///		you will get a StackOverflow Exception.
+		///	</param>
+		/// <returns>
+		///		Json string of the serialized object.
+		///	</returns>
+		public static string ToJson<T>(T element, bool enableHashing = false)
 		{
 			JsonSerializer jsonSerializer = new JsonSerializer();
-			return jsonSerializer.ToJson(obj, typeof(T));
+			return jsonSerializer.ToJson(element, typeof(T), enableHashing);
 		}
 
-		public static string ToJson(object obj, Type t)
+		/// <summary>
+		///		Creates Json code from the provided element.
+		/// </summary>
+		/// <param name="element">
+		///		The object that is serialized.
+		///	</param>
+		/// <param name="elementType">
+		///		The type of the object that is serialized.
+		///	</param>
+		/// <param name="enableHashing">
+		///		If true, the objects' hashcode is used to determine nested references. 
+		///		And duplicates are referred to by a number.
+		///		<br></br>
+		///		If set to false, and nested objects to refer to earlier objects, 
+		///		you will get a StackOverflow Exception.
+		///	</param>
+		/// <returns>
+		///		Json string of the serialized object.
+		///	</returns>
+		public static string ToJson(object element, Type elementType, bool enableHashing = false)
 		{
 			JsonSerializer jsonSerializer = new JsonSerializer();
-			return jsonSerializer.ToJson(obj, t);
+			return jsonSerializer.ToJson(element, elementType, enableHashing);
 		}
 	}
 }
