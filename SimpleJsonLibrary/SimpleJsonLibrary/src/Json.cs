@@ -412,6 +412,7 @@ namespace SimpleJsonLibrary
 						for (char jsonChar; i < json.Length; i++)
 						{
 							jsonChar = json[i];
+
 							// if json[i] is a suffix, the array is finished. 
 							if (jsonChar == ARRAYSUFFIX || json[i + 1] == OBJECTSUFFIX)
 							{
