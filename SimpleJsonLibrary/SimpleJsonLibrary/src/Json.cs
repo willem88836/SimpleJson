@@ -10,8 +10,10 @@ namespace SimpleJsonLibrary
 	// TODO: Serializing Arrays with multiple dimensions does not work. 
 	// TODO: Arrays with no content doesn't work.
 	// TODO: Nested strings do not work.
-	// TODO: Add functionality to disable/enable nested objects.
 	// TODO: Commentary...
+	/// <summary>
+	///		JsonUtility provides simple Json serialization and deserialization functionalities.
+	/// </summary>
 	public static class JsonUtility
 	{
 		private class Json
@@ -29,12 +31,20 @@ namespace SimpleJsonLibrary
 
 		private class JsonSerializer : Json
 		{
-			private StringBuilder jsonBuilder = new StringBuilder();
-			private List<int> objectHashes = new List<int>();
+			private StringBuilder jsonBuilder;
+			private List<int> objectHashes;
+			private bool enableHashing;
 
 
-			public string ToJson(object element, Type elementType)
+			public string ToJson(object element, Type elementType, bool enableHashing)
 			{
+				this.jsonBuilder = new StringBuilder();
+				this.enableHashing = enableHashing;
+				if (this.enableHashing)
+				{
+					objectHashes = new List<int>();
+				}
+
 				SerializeObject(element, elementType);
 				string json = jsonBuilder.ToString();
 				return json;
@@ -50,7 +60,7 @@ namespace SimpleJsonLibrary
 
 				int hash = element.GetHashCode();
 
-				if (objectHashes.Contains(hash))
+				if (enableHashing && objectHashes.Contains(hash))
 				{
 					int index = objectHashes.IndexOf(hash);
 					jsonBuilder.Append(OBJREFERENCE);
@@ -59,8 +69,11 @@ namespace SimpleJsonLibrary
 				}
 				else
 				{
-					int index = objectHashes.Count;
-					objectHashes.Add(hash);
+					if (enableHashing)
+					{
+						int index = objectHashes.Count;
+						objectHashes.Add(hash);
+					}
 
 					jsonBuilder.Append(OBJPREFIX);
 
@@ -465,6 +478,18 @@ namespace SimpleJsonLibrary
 		}
 
 
+		/// <summary>
+		///		Converts Json string into a usable object. 
+		/// </summary>
+		/// <typeparam name="T">
+		///		The type of the string that is deserialized.
+		///	</typeparam>
+		/// <param name="json">
+		///		The string that is deserialized.
+		///	</param>
+		/// <returns>
+		///		The deserialized Json object.
+		///	</returns>
 		public static T FromJson<T>(string json) where  T : new()
 		{
 			JsonDeserializer jsonDeserializer = new JsonDeserializer();
@@ -472,23 +497,73 @@ namespace SimpleJsonLibrary
 			return (T)jsonDeserializer.DeserializeObject(json, ref i, typeof(T));
 		}
 
-		public static object FromJson(string json, Type t)
+		/// <summary>
+		///		Converts Json string into a usable object. 
+		/// </summary>
+		/// <param name="json">
+		///		The string that is deserialized.
+		///	</param>
+		/// <param name="elementType">
+		///		The type of the string that is deserialized.
+		///	</param>
+		/// <returns>
+		///		The deserialized Json object.
+		///	</returns>
+		public static object FromJson(string json, Type elementType)
 		{
 			JsonDeserializer jsonDeserializer = new JsonDeserializer();
 			int i = 0;
-			return jsonDeserializer.DeserializeObject(json, ref i, t);
+			return jsonDeserializer.DeserializeObject(json, ref i, elementType);
 		}
 
-		public static string ToJson<T>(T obj)
+		/// <summary>
+		///		Creates Json code from the provided element.
+		/// </summary>
+		/// <typeparam name="T">
+		///		The type of the object that is serialized.
+		///	</typeparam>
+		/// <param name="element">
+		///		The object that is serialized.
+		/// </param>
+		/// <param name="enableHashing">
+		///		If true, the objects' hashcode is used to determine nested references. 
+		///		And duplicates are referred to by a number.
+		///		<br></br>
+		///		If set to false, and nested objects to refer to earlier objects, 
+		///		you will get a StackOverflow Exception.
+		///	</param>
+		/// <returns>
+		///		Json string of the serialized object.
+		///	</returns>
+		public static string ToJson<T>(T element, bool enableHashing = false)
 		{
 			JsonSerializer jsonSerializer = new JsonSerializer();
-			return jsonSerializer.ToJson(obj, typeof(T));
+			return jsonSerializer.ToJson(element, typeof(T), enableHashing);
 		}
 
-		public static string ToJson(object obj, Type t)
+		/// <summary>
+		///		Creates Json code from the provided element.
+		/// </summary>
+		/// <param name="element">
+		///		The object that is serialized.
+		///	</param>
+		/// <param name="elementType">
+		///		The type of the object that is serialized.
+		///	</param>
+		/// <param name="enableHashing">
+		///		If true, the objects' hashcode is used to determine nested references. 
+		///		And duplicates are referred to by a number.
+		///		<br></br>
+		///		If set to false, and nested objects to refer to earlier objects, 
+		///		you will get a StackOverflow Exception.
+		///	</param>
+		/// <returns>
+		///		Json string of the serialized object.
+		///	</returns>
+		public static string ToJson(object element, Type elementType, bool enableHashing = false)
 		{
 			JsonSerializer jsonSerializer = new JsonSerializer();
-			return jsonSerializer.ToJson(obj, t);
+			return jsonSerializer.ToJson(element, elementType, enableHashing);
 		}
 	}
 }

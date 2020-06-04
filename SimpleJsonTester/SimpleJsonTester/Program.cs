@@ -13,21 +13,35 @@ namespace SimpleJsonTester
 
 				Console.WriteLine("Hello World!");
 
+				JsonTestObject jsonTestObject = new JsonTestObject()
+				{
+					index = 3
+				};
+
+
+
+
 				JsonTestObject myObject = new JsonTestObject()
 				{
+					index = 0,
 					myJsonObject = new JsonTestObject()
 					{
-						myJsonObject = new JsonTestObject()
+						index = 1,
+						myJsonObject = new JsonTestObject() 
+						{
+							index = 2
+						},
+						myJsonObject2 = jsonTestObject
 					},
-					myJsonObject2 = new JsonTestObject()
+					myJsonObject2 = jsonTestObject
 				};
 				
-				string json1 = JsonUtility.ToJson(myObject);
-				Console.WriteLine(json1);
+				string json1 = JsonUtility.ToJson(myObject, typeof(JsonTestObject), false);
 
 				JsonTestObject deserializedJson = JsonUtility.FromJson<JsonTestObject>(json1);
-				string json2 = JsonUtility.ToJson(deserializedJson);
-				Console.WriteLine(json2);
+				string json2 = JsonUtility.ToJson(deserializedJson, typeof(JsonTestObject), false);
+				Console.WriteLine(json1.Replace(",", ",\n").Replace("{", "{\n") + "\n\n");
+				Console.WriteLine(json2.Replace(",", ",\n").Replace("{", "{\n"));
 
 				bool equal = areEqual(json1, json2);
 
@@ -63,21 +77,22 @@ namespace SimpleJsonTester
 
 	public class JsonTestObject
 	{
-		public bool Boolvalue = true;
-		public byte Bytevalue = 126;
-		public sbyte Sbytevalue = 66;
-		public char Charvalue = 'd';
-		public decimal Decimalvalue = (decimal)123.82654654;
-		public double Doublevalue = (double)321.8520963;
-		public float Floatvalue = (float)987.321654987;
-		public int Intvalue = -5533;
-		public uint Uintvalue = 445626;
-		public long Longvalue = -987654;
-		public ulong Ulongvalue = 98756462432665;
-		public object Objectvalue = 654654;
-		public short Shortvalue = -7789;
-		public ushort Ushortvalue = 987;
-		public string Stringvalue = "I'm a string string! string string, woah string";
+		public int index = -1;
+		//public bool Boolvalue = true;
+		//public byte Bytevalue = 126;
+		//public sbyte Sbytevalue = 66;
+		//public char Charvalue = 'd';
+		//public decimal Decimalvalue = (decimal)123.82654654;
+		//public double Doublevalue = (double)321.8520963;
+		//public float Floatvalue = (float)987.321654987;
+		//public int Intvalue = -5533;
+		//public uint Uintvalue = 445626;
+		//public long Longvalue = -987654;
+		//public ulong Ulongvalue = 98756462432665;
+		//public object Objectvalue = 654654;
+		//public short Shortvalue = -7789;
+		//public ushort Ushortvalue = 987;
+		//public string Stringvalue = "I'm a string string! string string, woah string";
 
 		[JsonIgnore] public bool Boolvalue2 = false;
 		[JsonIgnore] public byte Bytevalue2 = 45;
