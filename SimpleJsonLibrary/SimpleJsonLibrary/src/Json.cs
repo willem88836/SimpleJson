@@ -216,14 +216,14 @@ namespace SimpleJsonLibrary
 		private class JsonDeserializer : Json
 		{
 			private List<object> chronologicalObjects = new List<object>();
+			private int index = 0;
 
-
-			public object DeserializeObject(string json, ref int i, Type elementType)
+			public object DeserializeObject(string json, Type elementType)
 			{
-				string nullValue = json.Substring(i, 4);
+				string nullValue = json.Substring(index, 4);
 				if (nullValue == NULL)
 				{
-					i += 3;
+					index += 3;
 					return null;
 				}
 
@@ -236,18 +236,18 @@ namespace SimpleJsonLibrary
 				StringBuilder nameBuilder = new StringBuilder();
 				StringBuilder valueBuilder = new StringBuilder();
 
-				if (json[i] != OBJECTPREFIX)
+				if (json[index] != OBJECTPREFIX)
 				{
 					return null;
 				}
 				else
 				{
-					i++;
+					index++;
 				}
 
-				for (char jsonChar; i < json.Length; i++)
+				for (char jsonChar; index < json.Length; index++)
 				{
-					jsonChar = json[i];
+					jsonChar = json[index];
 
 					if (jsonChar == OBJECTSUFFIX)
 					{
@@ -260,7 +260,7 @@ namespace SimpleJsonLibrary
 					}
 					else
 					{
-						i++;
+						index++;
 						string memberName = nameBuilder.ToString();
 
 						if (memberName.StartsWith("\""))
@@ -294,28 +294,28 @@ namespace SimpleJsonLibrary
 
 						if (IsPrimitive(objectType))
 						{
-							memberValue = DeserializePrimitive(json, ref i, objectType);
+							memberValue = DeserializePrimitive(json, objectType);
 						}
 						else if (objectType.IsArray)
 						{
-							memberValue = DeserializeArray(json, ref i, objectType.GetElementType());
+							memberValue = DeserializeArray(json, objectType.GetElementType());
 						}
 						else
 						{
-							if (json[i] == OBJECTREFERENCE)
+							if (json[index] == OBJECTREFERENCE)
 							{
-								memberValue = DeserializeReference(json, ref i);
+								memberValue = DeserializeReference(json);
 							}
 							else
 							{
-								memberValue = DeserializeObject(json, ref i, objectType);
+								memberValue = DeserializeObject(json, objectType);
 							}
-							i++;
+							index++;
 						}
 						setValue.Invoke(memberValue);
 
 
-						jsonChar = json[i];
+						jsonChar = json[index];
 						if (jsonChar == OBJECTSUFFIX)
 						{
 							return element;
@@ -326,13 +326,13 @@ namespace SimpleJsonLibrary
 				return element;
 			}
 
-			private object DeserializePrimitive(string json, ref int i, Type primitiveType)
+			private object DeserializePrimitive(string json, Type primitiveType)
 			{
 				StringBuilder valueBuilder = new StringBuilder();
 				bool isString = false; 
-				for (char jsonChar; i < json.Length; i++)
+				for (char jsonChar; index < json.Length; index++)
 				{
-					jsonChar = json[i];
+					jsonChar = json[index];
 					if (jsonChar == QUOTATIONMARK)
 					{
 						isString = !isString;
@@ -362,50 +362,50 @@ namespace SimpleJsonLibrary
 				return Convert.ChangeType(value, primitiveType);
 			}
 
-			private Array DeserializeArray(string json, ref int i, Type arraySubType)
+			private Array DeserializeArray(string json, Type arraySubType)
 			{
 				List<object> arrayElements = new List<object>();
 
 				// When the prefix is followed by a suffix, the array is empty.
-				if (json[i + 1] != ARRAYSUFFIX)
+				if (json[index + 1] != ARRAYSUFFIX)
 				{
-					for (char jsonChar; i < json.Length; i++)
+					for (char jsonChar; index < json.Length; index++)
 					{
-						jsonChar = json[i];
+						jsonChar = json[index];
 
 						// if json[i] is a suffix, the array is finished. 
-						if (jsonChar == ARRAYSUFFIX || json[i + 1] == OBJECTSUFFIX)
+						if (jsonChar == ARRAYSUFFIX || json[index + 1] == OBJECTSUFFIX)
 						{
 							break;
 						}
 
 						// i is incremented so it points to the element
 						// after the comma or array's own prefix.
-						i++;
+						index++;
 
 						object element = null;
 
 						// Based on the current character, 
 						// a deserialization methodis chosen. 
-						switch (json[i])
+						switch (json[index])
 						{
 							case OBJECTPREFIX:
-								element= DeserializeObject(json, ref i, arraySubType);
+								element= DeserializeObject(json, arraySubType);
 								// TODO: Is incremented, as DeserializeObject ends on 
 								// the last character, not the next.
-								i++;
+								index++;
 								break;
 							case OBJECTREFERENCE:
-								element = DeserializeReference(json, ref i);
+								element = DeserializeReference(json);
 								// TODO: Is incremented, as DeserializeReference ends on 
 								// the last character, not the next.
-								i++;
+								index++;
 								break;
 							case ARRAYPREFIX:
-								element = DeserializeArray(json, ref i, arraySubType.GetElementType());
+								element = DeserializeArray(json, arraySubType.GetElementType());
 								break;
 							default:
-								element = DeserializePrimitive(json, ref i, arraySubType);
+								element = DeserializePrimitive(json, arraySubType);
 								break;
 						}
 
@@ -413,18 +413,18 @@ namespace SimpleJsonLibrary
 
 						// i is decremented so the prior, in-loop if-statement can see 
 						// whether it's a special character.
-						i--;
+						index--;
 					}
 				}
 				else
 				{
 					// i is incremented, so it points to the array-suffix.
-					i++;
+					index++;
 				}
 
 
 				// Is incremented so json[i] no longer points at the array-suffix.
-				i++;
+				index++;
 
 				// All elements of the list are copied to Array.
 				Array array = Array.CreateInstance(arraySubType, arrayElements.Count);
@@ -437,18 +437,18 @@ namespace SimpleJsonLibrary
 				return array;
 			}
 
-			private object DeserializeReference(string json, ref int i)
+			private object DeserializeReference(string json)
 			{
-				if (json[i] == OBJECTREFERENCE)
+				if (json[index] == OBJECTREFERENCE)
 				{
-					i++;
+					index++;
 				}
 
 				StringBuilder referenceBuilder = new StringBuilder();
 
-				for (char jsonChar; i < json.Length; i++)
+				for (char jsonChar; index < json.Length; index++)
 				{
-					jsonChar = json[i];
+					jsonChar = json[index];
 
 					if (jsonChar == OBJECTREFERENCE)
 					{
@@ -493,8 +493,7 @@ namespace SimpleJsonLibrary
 		public static T FromJson<T>(string json) where  T : new()
 		{
 			JsonDeserializer jsonDeserializer = new JsonDeserializer();
-			int i = 0;
-			return (T)jsonDeserializer.DeserializeObject(json, ref i, typeof(T));
+			return (T)jsonDeserializer.DeserializeObject(json, typeof(T));
 		}
 
 		/// <summary>
@@ -512,8 +511,7 @@ namespace SimpleJsonLibrary
 		public static object FromJson(string json, Type elementType)
 		{
 			JsonDeserializer jsonDeserializer = new JsonDeserializer();
-			int i = 0;
-			return jsonDeserializer.DeserializeObject(json, ref i, elementType);
+			return jsonDeserializer.DeserializeObject(json, elementType);
 		}
 
 		/// <summary>
