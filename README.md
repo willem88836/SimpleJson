@@ -20,10 +20,10 @@ using System;
 
 public class MyJsonObject
 {
-	public int myInteger;
-	public string myString;
+	public int MyInteger;
+	public string MyString;
 	// This field is ignored.
-	[JsonIgnore] public bool myBoolean;
+	[JsonIgnore] public bool MyBoolean;
 	public MyJsonObject MyNestedReference;
 }
 
@@ -34,9 +34,9 @@ public class SimpleJsonExample
 	{
 		MyJsonObject jsonObject = new MyJsonObject()
 		{
-			myInteger = 15,
-			myString = "I am some string!",
-			myBoolean = true,
+			MyInteger = 15,
+			MyString = "I am some string!",
+			MyBoolean = true,
 			MyNestedReference = new MyJsonObject()
 		};
 
@@ -53,9 +53,9 @@ public class SimpleJsonExample
 	{
 		MyJsonObject jsonObject = new MyJsonObject()
 		{
-			myInteger = 24,
-			myString = "Hello World!",
-			myBoolean = false
+			MyInteger = 24,
+			MyString = "Hello World!",
+			MyBoolean = false
 		};
 
 		// The object now references itself!
