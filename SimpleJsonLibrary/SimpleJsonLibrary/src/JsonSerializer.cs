@@ -64,6 +64,15 @@ namespace SimpleJsonLibrary
 				return;
 			}
 
+			// String is the only object with exception to the rule.
+			if (elementType == typeof(string))
+			{
+				jsonBuilder.Append(QUOTATIONMARK);
+				jsonBuilder.Append(element.ToString());
+				jsonBuilder.Append(QUOTATIONMARK);
+				return;
+			}
+
 			int hash = element.GetHashCode();
 
 			if (enableHashing && objectHashes.Contains(hash))
@@ -148,7 +157,7 @@ namespace SimpleJsonLibrary
 				{
 					SerializeArray(value);
 				}
-				else if (IsPrimitive(valueType))
+				else if (valueType.IsPrimitive)
 				{
 					SerializePrimitive(value);
 				}
@@ -178,7 +187,7 @@ namespace SimpleJsonLibrary
 			Type arraySubtype = arrayElement.GetType().GetElementType();
 			jsonBuilder.Append(ARRAYPREFIX);
 			Array array = (Array)arrayElement;
-			if (IsPrimitive(arraySubtype))
+			if (arraySubtype.IsPrimitive)
 			{
 				for (int i = 0; i < array.Length; i++)
 				{
@@ -225,16 +234,7 @@ namespace SimpleJsonLibrary
 		/// </param>
 		private void SerializePrimitive(object element)
 		{
-			if (element.GetType() == typeof(string))
-			{
-				jsonBuilder.Append(QUOTATIONMARK);
-				jsonBuilder.Append(element.ToString());
-				jsonBuilder.Append(QUOTATIONMARK);
-			}
-			else
-			{
-				jsonBuilder.Append(element.ToString());
-			}
+			jsonBuilder.Append(element.ToString());
 		}
 	}
 }

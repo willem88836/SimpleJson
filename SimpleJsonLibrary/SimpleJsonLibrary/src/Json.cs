@@ -1,4 +1,3 @@
-using System;
 
 namespace SimpleJsonLibrary
 {
@@ -13,18 +12,5 @@ namespace SimpleJsonLibrary
 		protected const char OBJECTSEPARATOR = ',';
 		protected const char QUOTATIONMARK = '\"';
 		protected const char OBJECTREFERENCE = '$';
-
-
-		/// <summary>
-		///		Returns true if the type is primitive or a string.
-		/// </summary>
-		/// <param name="type">
-		///		tested type.
-		///	</param>
-		/// <returns></returns>
-		protected bool IsPrimitive(Type type)
-		{
-			return type.IsPrimitive || type == typeof(string);
-		}
 	}
 }
