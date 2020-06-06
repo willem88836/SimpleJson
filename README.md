@@ -10,7 +10,7 @@ It focusses on the essential elements of a Json library, without all the complex
   * (De)serialization of self-referencing objects (or objects that refer to the same object multiple times).
   
 ### Getting Started
-The easiest way to get started is to download the SimpleJsonLibary.dll file from [here](https://github.com/willem88836/SimpleJson/releases). 
+The easiest way to get started is to download the SimpleJsonLibrary.dll file from [here](https://github.com/willem88836/SimpleJson/releases). 
 Import this file into your project, and you're good to go!
 
 ### Quick Example
