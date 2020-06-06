@@ -1,5 +1,6 @@
 # SimpleJson
-SimpleJson is a simple-to-use Json library.
+SimpleJson is a simple-to-use Json library for .NET C#.
+It focusses on the essential elements of a Json library, without all the complexities other libraries often offer. 
 
 ### Features
   * (De)serialization of one-layer objects (objects that only contain primitives).
