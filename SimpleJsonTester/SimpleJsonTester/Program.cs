@@ -10,6 +10,22 @@ namespace SimpleJsonTester
 		{
 			try
 			{
+				SimpleJsonExample example = new SimpleJsonExample();
+				example.DoJsonExample();
+				example.DoJsonExampleHashed();
+			}
+			catch(Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+				Console.WriteLine(ex.StackTrace);
+			}
+			return;
+
+
+
+
+			try
+			{
 				JsonTestObject myObject = new JsonTestObject();
 
 
@@ -70,6 +86,7 @@ namespace SimpleJsonTester
 	public class JsonTestObject
 	{
 		public string myString = "some string text;";
+		public string myNullString = null;
 
 
 		public int[] intArrayA = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };

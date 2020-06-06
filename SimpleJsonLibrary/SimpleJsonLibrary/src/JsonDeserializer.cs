@@ -117,7 +117,11 @@ namespace SimpleJsonLibrary
 
 					object memberValue = null;
 
-					if (IsPrimitive(objectType))
+					// strings are handled as primitives during deserialization, 
+					// as this is far easier to handle than when they're an object. 
+					// Note: during serialization they ARE handled as objects. 
+					// NOT as primitives. 
+					if (objectType.IsPrimitive || objectType == typeof(string))
 					{
 						memberValue = DeserializePrimitive(objectType);
 					}
@@ -135,6 +139,7 @@ namespace SimpleJsonLibrary
 						{
 							memberValue = DeserializeObject(objectType);
 						}
+
 						index++;
 					}
 					setValue.Invoke(memberValue);
@@ -164,17 +169,19 @@ namespace SimpleJsonLibrary
 		private object DeserializePrimitive(Type primitiveType)
 		{
 			StringBuilder valueBuilder = new StringBuilder();
-			bool isString = false;
+			// inString is used to determine whether the current character
+			// is inside of a string. If it is, it cannot break the loop. 
+			bool inString = false;
 			for (char jsonChar; index < json.Length; index++)
 			{
 				jsonChar = json[index];
+				
 				if (jsonChar == QUOTATIONMARK)
 				{
-					isString = !isString;
+					inString = !inString;
 				}
 
-
-				if (!isString && (jsonChar == OBJECTSEPARATOR || jsonChar == OBJECTSUFFIX || jsonChar == ARRAYSUFFIX))
+				if (!inString && (jsonChar == OBJECTSEPARATOR || jsonChar == OBJECTSUFFIX || jsonChar == ARRAYSUFFIX))
 				{
 					break;
 				}
