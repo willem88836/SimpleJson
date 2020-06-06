@@ -10,6 +10,22 @@ namespace SimpleJsonTester
 		{
 			try
 			{
+				SimpleJsonExample example = new SimpleJsonExample();
+				example.DoJsonExample();
+				example.DoJsonExampleHashed();
+			}
+			catch(Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+				Console.WriteLine(ex.StackTrace);
+			}
+			return;
+
+
+
+
+			try
+			{
 				JsonTestObject myObject = new JsonTestObject();
 
 
