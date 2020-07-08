@@ -30,7 +30,19 @@ namespace SimpleJsonLibrary
 			this.chronologicalObjects = new List<object>();
 			this.json = json;
 			this.index = 0;
-			return DeserializeObject(elementType);
+
+			if (elementType.IsPrimitive)
+			{
+				return DeserializePrimitive(elementType);
+			}
+			else if (elementType.IsArray)
+			{
+				return DeserializeArray(elementType.GetElementType());
+			}
+			else
+			{
+				return DeserializeObject(elementType);
+			}
 		}
 
 		/// <summary>

@@ -42,7 +42,19 @@ namespace SimpleJsonLibrary
 				objectHashes = new List<int>();
 			}
 
-			SerializeObject(element, elementType);
+			if (elementType.IsArray)
+			{
+				SerializeArray(element);
+			}
+			else if (elementType.IsPrimitive)
+			{
+				SerializePrimitive(element);
+			}
+			else
+			{
+				SerializeObject(element, elementType);
+			}
+
 			string json = jsonBuilder.ToString();
 			return json;
 		}

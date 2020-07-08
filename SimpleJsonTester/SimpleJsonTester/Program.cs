@@ -8,6 +8,18 @@ namespace SimpleJsonTester
 	{
 		static void Main(string[] args)
 		{
+			int[] someIntArray = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+			string json = JsonUtility.ToJson(someIntArray, typeof(int[]));
+			Console.WriteLine(json);
+
+			int masdf = 888;
+			Console.WriteLine(JsonUtility.ToJson(masdf));
+
+
+
+			return;
+
 			try
 			{
 				SimpleJsonExample example = new SimpleJsonExample();
